@@ -5,20 +5,20 @@ description = "Асинхронный микросервис процессин�
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "aio-pika>=10.1.0",
     "alembic>=1.20.0",
     "asyncpg>=0.31.0",
     "fastapi>=0.142.2",
-    "faststream>=0.7.7",
+    "faststream[rabbit]>=0.7.7",
     "httpx>=0.28.1",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
-    "sqlalchemy>=2.1.3",
+    "sqlalchemy[asyncio]>=2.1.3",
     "structlog>=26.1.0",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
-async-payments-service = "async_payments_service:main"
+async-payments-service = "async_payments_service.main:main"
 
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]
@@ -54,5 +54,6 @@ files = ["src"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 testpaths = ["tests"]
