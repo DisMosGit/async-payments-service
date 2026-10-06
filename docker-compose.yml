@@ -123,6 +123,24 @@ services:
       retries: 3
       start_period: 30s
 
+  webhook-receiver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["async-payments-webhook-receiver"]
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://127.0.0.1:9000/health", timeout=5)
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   postgres-data:
   rabbitmq-data:
