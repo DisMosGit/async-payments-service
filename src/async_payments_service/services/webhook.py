@@ -9,6 +9,7 @@ from async_payments_service.core.clock import Sleep
 from async_payments_service.core.config import Settings
 from async_payments_service.core.context import get_correlation_id
 from async_payments_service.core.exceptions import WebhookDeliveryError
+from async_payments_service.core.serialization import JSON_MEDIA_TYPE, dumps
 from async_payments_service.models.payment import Payment
 from async_payments_service.schemas.webhooks import PaymentWebhookPayload
 
@@ -38,7 +39,8 @@ class WebhookSender:
         self._sleep = sleep
 
     async def send(self, payment: Payment) -> WebhookDelivery:
-        body = PaymentWebhookPayload.from_payment(payment, get_correlation_id()).model_dump(mode="json")
+        payload = PaymentWebhookPayload.from_payment(payment, get_correlation_id()).model_dump(mode="json")
+        body = dumps(payload)
         attempt = 0
         while True:
             status_code: int | None = None
@@ -46,7 +48,8 @@ class WebhookSender:
             try:
                 response = await self._client.post(
                     payment.webhook_url,
-                    json=body,
+                    content=body,
+                    headers={"content-type": JSON_MEDIA_TYPE},
                     timeout=self._timeout,
                 )
             except httpx.HTTPError as request_error:

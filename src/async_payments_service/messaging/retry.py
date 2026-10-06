@@ -1,4 +1,3 @@
-import json
 from types import TracebackType
 from typing import Any, cast
 
@@ -8,6 +7,7 @@ from faststream._internal.middlewares import BaseMiddleware
 from faststream.rabbit.message import RabbitMessage
 
 from async_payments_service.core.backoff import retry_delay
+from async_payments_service.core.serialization import loads
 from async_payments_service.messaging.topology import PAYMENTS_RETRY_QUEUE, RETRY_COUNT_HEADER
 from async_payments_service.messaging.types import RabbitBrokerProvider
 from async_payments_service.schemas.events import PaymentCreatedEvent
@@ -96,7 +96,7 @@ def decode_body(body: Any) -> dict[str, Any] | None:
         return body
     if isinstance(body, bytes):
         try:
-            decoded = json.loads(body)
+            decoded = loads(body)
         except ValueError:
             return None
         return decoded if isinstance(decoded, dict) else None

@@ -3,6 +3,8 @@ import sys
 
 import structlog
 
+from async_payments_service.core.serialization import dumps_text
+
 _SHARED_PROCESSORS: list[structlog.typing.Processor] = [
     structlog.contextvars.merge_contextvars,
     structlog.stdlib.add_log_level,
@@ -27,7 +29,7 @@ def configure_logging(level: int = logging.INFO) -> None:
         foreign_pre_chain=_SHARED_PROCESSORS,
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.processors.JSONRenderer(),
+            structlog.processors.JSONRenderer(serializer=dumps_text),
         ],
     )
 
