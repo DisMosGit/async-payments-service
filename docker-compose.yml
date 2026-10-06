@@ -67,6 +67,62 @@ services:
       retries: 10
       start_period: 30s
 
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["async-payments-consumer"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/payments
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      API_KEY: dev-api-key
+      MAX_RETRIES: "3"
+      RETRY_BASE_DELAY: "2"
+      WEBHOOK_TIMEOUT: "10"
+      GATEWAY_MIN_DELAY: "2"
+      GATEWAY_MAX_DELAY: "5"
+      GATEWAY_SUCCESS_RATE: "0.9"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "async-payments-worker-healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  outbox-publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["async-payments-outbox-publisher"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/payments
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      API_KEY: dev-api-key
+      MAX_RETRIES: "3"
+      RETRY_BASE_DELAY: "2"
+      OUTBOX_BATCH_SIZE: "100"
+      OUTBOX_POLL_INTERVAL: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "async-payments-worker-healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
 volumes:
   postgres-data:
   rabbitmq-data:
