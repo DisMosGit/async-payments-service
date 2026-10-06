@@ -1,6 +1,6 @@
 [project]
 name = "async-payments-service"
-version = "0.1.0"
+version = "0.1.1"
 description = "Асинхронный микросервис процессинга платежей: FastAPI, SQLAlchemy 2.0, PostgreSQL, RabbitMQ."
 readme = "README.md"
 requires-python = ">=3.14"
@@ -12,6 +12,7 @@ dependencies = [
     "httpx>=0.28.1",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
+    "python-ulid[pydantic]>=4.0.1",
     "sqlalchemy[asyncio]>=2.1.3",
     "structlog>=26.1.0",
     "uvicorn>=0.54.0",
@@ -57,3 +58,4 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 testpaths = ["tests"]
+markers = ["integration: needs docker and starts a real postgres container"]
