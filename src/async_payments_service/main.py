@@ -15,6 +15,7 @@ from async_payments_service.core.readiness import ReadinessCheck
 from async_payments_service.db.engine import create_engine, ping_database
 from async_payments_service.db.session import create_session_factory
 from async_payments_service.messaging.broker import create_broker, ping_broker
+from async_payments_service.messaging.topology import declare_broker_topology
 
 
 def create_app() -> FastAPI:
@@ -75,6 +76,7 @@ def _start_broker(app: FastAPI) -> StartupHook:
     async def start() -> None:
         broker = create_broker(get_settings())
         await broker.connect()
+        await declare_broker_topology(broker)
         app.state.broker = broker
         app.state.readiness_checks["broker"] = _broker_check(broker)
 
