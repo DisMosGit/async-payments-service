@@ -1,4 +1,4 @@
-FROM python:3.14-slim AS builder
+FROM python:3.14.8-slim-trixie AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.17 /uv /bin/
 
@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-ins
 COPY src ./src
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev
 
-FROM python:3.14-slim AS runtime
+FROM python:3.14.8-slim-trixie AS runtime
 
 ENV PATH="/opt/venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
