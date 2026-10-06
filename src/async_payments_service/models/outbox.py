@@ -29,3 +29,4 @@ class OutboxEvent(Base):
     )
     published_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     last_error: Mapped[str | None] = mapped_column(sa.Text)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))

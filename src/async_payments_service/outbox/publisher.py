@@ -2,7 +2,11 @@ from typing import Any
 
 from faststream.rabbit import RabbitBroker
 
-from async_payments_service.messaging.topology import PAYMENT_CREATED_ROUTING_KEY, PAYMENTS_EXCHANGE
+from async_payments_service.messaging.topology import (
+    PAYMENT_CREATED_ROUTING_KEY,
+    PAYMENTS_EXCHANGE,
+    retry_delay,
+)
 from async_payments_service.schemas.events import PaymentCreatedEvent
 
 
@@ -18,3 +22,7 @@ async def publish_payment_created(broker: RabbitBroker, event: PaymentCreatedEve
         persist=True,
         **kwargs,
     )
+
+
+def retry_interval(retry_count: int, base_delay: float) -> float:
+    return retry_delay(max(retry_count - 1, 0), base_delay)

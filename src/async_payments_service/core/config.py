@@ -19,6 +19,7 @@ class Settings(DatabaseSettings):
     max_retries: int = Field(default=3, ge=0)
     retry_base_delay: float = Field(default=2.0, gt=0)
     outbox_batch_size: int = Field(default=100, gt=0)
+    outbox_poll_interval: float = Field(default=1.0, gt=0)
 
 
 @lru_cache
