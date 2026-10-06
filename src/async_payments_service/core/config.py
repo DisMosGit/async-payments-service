@@ -24,6 +24,8 @@ class Settings(DatabaseSettings):
     gateway_success_rate: float = Field(default=0.9, ge=0, le=1)
     outbox_batch_size: int = Field(default=100, gt=0)
     outbox_poll_interval: float = Field(default=1.0, gt=0)
+    worker_heartbeat_file: str = Field(default="/tmp/async-payments-worker.heartbeat", min_length=1)
+    worker_heartbeat_interval: float = Field(default=5.0, gt=0)
 
     @model_validator(mode="after")
     def validate_gateway_delay_window(self) -> Self:

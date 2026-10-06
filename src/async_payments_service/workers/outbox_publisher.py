@@ -1,5 +1,4 @@
 import asyncio
-import signal
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -12,6 +11,7 @@ from async_payments_service.core.backoff import retry_interval
 from async_payments_service.core.clock import utcnow
 from async_payments_service.core.config import Settings, get_settings
 from async_payments_service.core.logging import configure_logging
+from async_payments_service.core.signals import build_stop_event
 from async_payments_service.db.engine import create_engine
 from async_payments_service.db.session import create_session_factory
 from async_payments_service.db.transaction import transaction
@@ -22,6 +22,7 @@ from async_payments_service.models.outbox import OutboxEvent
 from async_payments_service.outbox.publisher import publish_payment_created
 from async_payments_service.repositories.outbox import OutboxRepository
 from async_payments_service.schemas.events import PaymentCreatedEvent
+from async_payments_service.workers.heartbeat import build_probe, heartbeat_path, supervise
 
 OUTBOX_EVENT_TYPE = OutboxEventType.PAYMENT_CREATED.code
 MAX_ERROR_LENGTH = 500
@@ -198,14 +199,6 @@ async def run_forever(
         await logger.ainfo("outbox_publisher_stopped")
 
 
-def build_stop_event() -> asyncio.Event:
-    stop_event = asyncio.Event()
-    loop = asyncio.get_running_loop()
-    for signum in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(signum, stop_event.set)
-    return stop_event
-
-
 async def serve(
     settings: Settings,
     session_factory: async_sessionmaker[AsyncSession],
@@ -214,7 +207,13 @@ async def serve(
     stop_event: asyncio.Event,
 ) -> None:
     try:
-        await run_forever(settings, session_factory, broker, stop_event)
+        await supervise(
+            stop_event,
+            heartbeat_path(settings),
+            settings.worker_heartbeat_interval,
+            build_probe(engine, broker),
+            lambda: run_forever(settings, session_factory, broker, stop_event),
+        )
     finally:
         await broker.stop()
         await engine.dispose()
