@@ -8,6 +8,7 @@ from faststream.rabbit import RabbitBroker
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from async_payments_service.core.backoff import retry_interval
 from async_payments_service.core.clock import utcnow
 from async_payments_service.core.config import Settings, get_settings
 from async_payments_service.core.logging import configure_logging
@@ -18,7 +19,7 @@ from async_payments_service.messaging.broker import create_broker
 from async_payments_service.messaging.topology import declare_broker_topology
 from async_payments_service.models.enums import OutboxEventType, OutboxStatus
 from async_payments_service.models.outbox import OutboxEvent
-from async_payments_service.outbox.publisher import publish_payment_created, retry_interval
+from async_payments_service.outbox.publisher import publish_payment_created
 from async_payments_service.repositories.outbox import OutboxRepository
 from async_payments_service.schemas.events import PaymentCreatedEvent
 

@@ -7,7 +7,8 @@ from faststream._internal.basic_types import AsyncFuncAny
 from faststream._internal.middlewares import BaseMiddleware
 from faststream.rabbit.message import RabbitMessage
 
-from async_payments_service.messaging.topology import PAYMENTS_RETRY_QUEUE, RETRY_COUNT_HEADER, retry_delay
+from async_payments_service.core.backoff import retry_delay
+from async_payments_service.messaging.topology import PAYMENTS_RETRY_QUEUE, RETRY_COUNT_HEADER
 from async_payments_service.messaging.types import RabbitBrokerProvider
 from async_payments_service.schemas.events import PaymentCreatedEvent
 

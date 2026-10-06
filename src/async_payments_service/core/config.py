@@ -1,6 +1,7 @@
 from functools import lru_cache
+from typing import Self
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,8 +19,17 @@ class Settings(DatabaseSettings):
     webhook_timeout: float = Field(default=10.0, gt=0)
     max_retries: int = Field(default=3, ge=0)
     retry_base_delay: float = Field(default=2.0, gt=0)
+    gateway_min_delay: float = Field(default=2.0, ge=0)
+    gateway_max_delay: float = Field(default=5.0, ge=0)
+    gateway_success_rate: float = Field(default=0.9, ge=0, le=1)
     outbox_batch_size: int = Field(default=100, gt=0)
     outbox_poll_interval: float = Field(default=1.0, gt=0)
+
+    @model_validator(mode="after")
+    def validate_gateway_delay_window(self) -> Self:
+        if self.gateway_min_delay > self.gateway_max_delay:
+            raise ValueError("gateway_min_delay must not exceed gateway_max_delay")
+        return self
 
 
 @lru_cache

@@ -12,6 +12,8 @@ _SHARED_PROCESSORS: list[structlog.typing.Processor] = [
     structlog.processors.format_exc_info,
 ]
 
+_QUIET_LOGGERS: dict[str, int] = {"httpx": logging.WARNING}
+
 
 def configure_logging(level: int = logging.INFO) -> None:
     structlog.configure(
@@ -35,3 +37,6 @@ def configure_logging(level: int = logging.INFO) -> None:
     root = logging.getLogger()
     root.handlers = [handler]
     root.setLevel(level)
+
+    for name, logger_level in _QUIET_LOGGERS.items():
+        logging.getLogger(name).setLevel(logger_level)
