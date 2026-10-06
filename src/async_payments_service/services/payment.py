@@ -28,12 +28,10 @@ class PaymentService:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def create_payment(
-        self, request: PaymentCreateRequest, idempotency_key: IdempotencyKey
-    ) -> tuple[Payment, bool]:
+    async def create_payment(self, request: PaymentCreateRequest, idempotency_key: IdempotencyKey) -> Payment:
         existing = await self._find_by_idempotency_key(idempotency_key)
         if existing is not None:
-            return self._replay(existing, request)
+            return await self._replay(existing, request)
 
         try:
             payment = await self._create(request, idempotency_key)
@@ -41,10 +39,10 @@ class PaymentService:
             existing = await self._find_by_idempotency_key(idempotency_key)
             if existing is None:
                 raise
-            return self._replay(existing, request)
+            return await self._replay(existing, request)
 
         await logger.ainfo("payment_created", payment_id=str(payment.id))
-        return payment, True
+        return payment
 
     async def get_payment(self, payment_id: ULID) -> Payment:
         async with UnitOfWork(self._session_factory).transaction() as unit_of_work:
@@ -80,10 +78,11 @@ class PaymentService:
             return await unit_of_work.payments.get_by_idempotency_key(idempotency_key)
 
     @staticmethod
-    def _replay(payment: Payment, request: PaymentCreateRequest) -> tuple[Payment, bool]:
+    async def _replay(payment: Payment, request: PaymentCreateRequest) -> Payment:
         if not _matches(payment, request):
             raise DuplicateIdempotencyKeyError(payment.idempotency_key)
-        return payment, False
+        await logger.ainfo("payment_replayed", payment_id=str(payment.id))
+        return payment
 
 
 def _matches(payment: Payment, request: PaymentCreateRequest) -> bool:

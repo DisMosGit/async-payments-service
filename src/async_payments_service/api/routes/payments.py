@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, status
 
 from async_payments_service.api.dependencies import (
     IdempotencyKeyDep,
@@ -22,10 +22,9 @@ router = APIRouter(
 
 @router.post(
     "",
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_202_ACCEPTED,
     response_model=PaymentCreateResponse,
     responses={
-        status.HTTP_200_OK: {"model": PaymentCreateResponse},
         status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponse},
         status.HTTP_409_CONFLICT: {"model": ErrorResponse},
         status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponse},
@@ -33,13 +32,10 @@ router = APIRouter(
 )
 async def create_payment(
     payload: PaymentCreateRequest,
-    response: Response,
     idempotency_key: IdempotencyKeyDep,
     payment_service: PaymentServiceDep,
 ) -> PaymentCreateResponse:
-    payment, created = await payment_service.create_payment(payload, idempotency_key)
-    if not created:
-        response.status_code = status.HTTP_200_OK
+    payment = await payment_service.create_payment(payload, idempotency_key)
     return PaymentCreateResponse.from_payment(payment)
 
 

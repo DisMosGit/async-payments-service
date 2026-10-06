@@ -22,7 +22,7 @@ class PaymentCreateRequest(BaseModel):
 
 
 class PaymentCreateResponse(BaseModel):
-    id: UlidField
+    payment_id: UlidField
     status: PaymentStatusField
     amount: Decimal
     currency: CurrencyField
@@ -32,7 +32,7 @@ class PaymentCreateResponse(BaseModel):
     @classmethod
     def from_payment(cls, payment: Payment) -> Self:
         return cls(
-            id=payment.id,
+            payment_id=payment.id,
             status=payment.status,
             amount=payment.amount,
             currency=payment.currency,
@@ -50,7 +50,7 @@ class PaymentDetailResponse(PaymentCreateResponse):
     @classmethod
     def from_payment(cls, payment: Payment) -> Self:
         return cls(
-            id=payment.id,
+            payment_id=payment.id,
             status=payment.status,
             amount=payment.amount,
             currency=payment.currency,
