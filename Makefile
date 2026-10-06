@@ -1,4 +1,4 @@
-.PHONY: sync migrate revision run lint format typecheck test test-unit check clean
+.PHONY: sync migrate revision run lint format typecheck test test-unit check docker-build docker-up docker-down clean
 
 sync:
 	uv sync
@@ -29,6 +29,15 @@ test-unit:
 	uv run pytest -m "not integration"
 
 check: lint typecheck test
+
+docker-build:
+	docker compose build
+
+docker-up:
+	docker compose up --build -d --wait
+
+docker-down:
+	docker compose down
 
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache build dist

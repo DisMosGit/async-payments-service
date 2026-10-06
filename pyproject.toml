@@ -34,7 +34,7 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
     "ruff>=0.16.10",
-    "testcontainers>=4.15.0",
+    "testcontainers[rabbitmq]>=4.15.0",
 ]
 
 [tool.ruff]
@@ -59,3 +59,4 @@ asyncio_default_fixture_loop_scope = "function"
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 testpaths = ["tests"]
 markers = ["integration: needs docker and starts a real postgres container"]
+filterwarnings = ["ignore::DeprecationWarning:testcontainers.community.rabbitmq"]
