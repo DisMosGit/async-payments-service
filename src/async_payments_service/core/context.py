@@ -1,7 +1,7 @@
 import re
-from uuid import uuid4
 
 import structlog
+from ulid import ULID
 
 REQUEST_ID_HEADER = "X-Request-ID"
 CORRELATION_ID_HEADER = "X-Correlation-ID"
@@ -11,7 +11,7 @@ _ID_PATTERN = re.compile(r"\A[A-Za-z0-9._:-]+\Z")
 
 
 def new_request_id() -> str:
-    return str(uuid4())
+    return str(ULID())
 
 
 def sanitize_request_id(value: str | None) -> str | None:
