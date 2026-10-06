@@ -23,7 +23,6 @@ PAYMENTS_NEW_QUEUE = RabbitQueue(
 PAYMENTS_RETRY_QUEUE = RabbitQueue(
     PAYMENTS_RETRY_QUEUE_NAME,
     durable=True,
-    routing_key=PAYMENT_CREATED_ROUTING_KEY,
     arguments={
         "x-dead-letter-exchange": PAYMENTS_EXCHANGE_NAME,
         "x-dead-letter-routing-key": PAYMENT_CREATED_ROUTING_KEY,
@@ -40,9 +39,8 @@ async def declare_broker_topology(broker: RabbitBroker) -> None:
     dlx = await broker.declare_exchange(PAYMENTS_DLX)
     exchange = await broker.declare_exchange(PAYMENTS_EXCHANGE)
     dlq = await broker.declare_queue(PAYMENTS_DLQ)
-    retry_queue = await broker.declare_queue(PAYMENTS_RETRY_QUEUE)
+    await broker.declare_queue(PAYMENTS_RETRY_QUEUE)
     new_queue = await broker.declare_queue(PAYMENTS_NEW_QUEUE)
 
     await dlq.bind(dlx, routing_key=PAYMENT_DEAD_ROUTING_KEY)
-    await retry_queue.bind(exchange, routing_key=PAYMENT_CREATED_ROUTING_KEY)
     await new_queue.bind(exchange, routing_key=PAYMENT_CREATED_ROUTING_KEY)
