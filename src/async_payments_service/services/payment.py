@@ -1,6 +1,7 @@
 from typing import Any
 
 import structlog
+from pydantic import HttpUrl
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from ulid import ULID
@@ -11,13 +12,14 @@ from async_payments_service.core.exceptions import (
     PaymentNotFoundError,
 )
 from async_payments_service.core.ids import IdempotencyKey
-from async_payments_service.models.enums import PaymentStatus
+from async_payments_service.models.enums import OutboxEventType, PaymentStatus
 from async_payments_service.models.outbox import OutboxEvent
 from async_payments_service.models.payment import Payment
 from async_payments_service.repositories.unit_of_work import UnitOfWork
+from async_payments_service.schemas.events import PaymentCreatedEvent
 from async_payments_service.schemas.payments import PaymentCreateRequest
 
-OUTBOX_EVENT_TYPE = "payment.created"
+OUTBOX_EVENT_TYPE = OutboxEventType.PAYMENT_CREATED.code
 
 logger = structlog.get_logger(__name__)
 
@@ -95,12 +97,16 @@ def _matches(payment: Payment, request: PaymentCreateRequest) -> bool:
 
 
 def _event_payload(payment: Payment) -> dict[str, Any]:
-    return {
-        "payment_id": str(payment.id),
-        "amount": str(payment.amount),
-        "currency": payment.currency.code,
-        "webhook_url": payment.webhook_url,
-        "metadata": payment.payment_metadata,
-        "created_at": payment.created_at.isoformat(),
-        "correlation_id": get_correlation_id(),
-    }
+    return _event(payment).model_dump(mode="json")
+
+
+def _event(payment: Payment) -> PaymentCreatedEvent:
+    return PaymentCreatedEvent(
+        payment_id=payment.id,
+        amount=payment.amount,
+        currency=payment.currency,
+        webhook_url=HttpUrl(payment.webhook_url),
+        metadata=payment.payment_metadata,
+        created_at=payment.created_at,
+        correlation_id=get_correlation_id(),
+    )

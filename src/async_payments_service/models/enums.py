@@ -33,3 +33,11 @@ class OutboxStatus(SerializableEnum):
     @property
     def code(self) -> str:
         return self.name.lower()
+
+
+class OutboxEventType(SerializableEnum):
+    PAYMENT_CREATED = 1
+
+    @property
+    def code(self) -> str:
+        return self.name.lower().replace("_", ".")
