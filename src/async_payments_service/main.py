@@ -17,6 +17,10 @@ from async_payments_service.db.session import create_session_factory
 from async_payments_service.messaging.broker import create_broker, ping_broker
 from async_payments_service.messaging.topology import declare_broker_topology
 
+UVICORN_APP = "async_payments_service.main:app"
+KEEP_ALIVE_TIMEOUT = 65
+GRACEFUL_SHUTDOWN_TIMEOUT = 30
+
 
 def create_app() -> FastAPI:
     configure_logging()
@@ -98,4 +102,17 @@ app = create_app()
 
 def main() -> None:
     settings = get_settings()
-    uvicorn.run(app, host=settings.api_host, port=settings.api_port, log_config=None)
+    uvicorn.run(
+        UVICORN_APP,
+        host=settings.api_host,
+        port=settings.api_port,
+        workers=settings.api_workers,
+        log_config=None,
+        access_log=True,
+        proxy_headers=True,
+        forwarded_allow_ips=settings.api_forwarded_allow_ips,
+        server_header=False,
+        timeout_keep_alive=KEEP_ALIVE_TIMEOUT,
+        timeout_graceful_shutdown=GRACEFUL_SHUTDOWN_TIMEOUT,
+        limit_concurrency=settings.api_limit_concurrency,
+    )
